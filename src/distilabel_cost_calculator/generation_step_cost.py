@@ -29,12 +29,11 @@ class GenerationCostCalculator(Step):
         )
 
         total_cost = input_cost + output_cost
-        distilabel_output["api_cost"] = {
+        return {
             "inputs": input_cost,
             "outputs": output_cost,
             "total_cost_str": f"{total_cost:.6f}$",
         }
-        return distilabel_output
 
     def _calculate_token_cost(
         self,
@@ -64,8 +63,7 @@ class GenerationCostCalculator(Step):
     def process(self, inputs: StepInput) -> "StepOutput":
         """Process each input and calculate the associated cost."""
         encoding = tiktoken.encoding_for_model(model_name=self.api_model_name)
-        outputs = [
-            self._calculate_cost(input_data["distilabel_metadata"], encoding)
-            for input_data in inputs
-        ]
-        yield outputs
+        for input_data in inputs:
+            cost = self._calculate_cost(input_data["distilabel_metadata"], encoding)
+            input_data["api_cost"] = cost
+        yield inputs
