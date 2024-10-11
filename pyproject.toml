@@ -1,16 +1,16 @@
 [tool.poetry]
 name = "distilabel-cost-calculator"
-version = "0.1.0"
+version = "0.1.2"
 description = "A custom Step for LLM API cost calculation for the distilabel library."
 authors = ["Djellal Mohamed Aniss <djellalmohamedaniss@outlook.com>"]
 readme = "README.md"
-packages = [{include = "src/distilabel_cost_calculator/"}]
+
+packages = [{include = "distilabel_cost_calculator", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10.15"
 tiktoken = "^0.8.0"
 pyyaml = "^6.0.2"
-
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
