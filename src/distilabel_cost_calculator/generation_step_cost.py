@@ -4,7 +4,7 @@ from typing import Dict
 import tiktoken
 from distilabel.steps import Step, StepInput
 from distilabel.steps.typing import StepOutput
-from pydantic import Field
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from tiktoken import Encoding
 
 from distilabel_cost_calculator.config.api_pricing_config import APIPricingConfig
@@ -16,16 +16,29 @@ api_pricing_config = APIPricingConfig(api_pricing_config_path.resolve())
 
 class GenerationCostCalculator(Step):
     api_model_name: str = Field(default_factory=str, exclude=True)
+    api_pricing: dict | None = None
+
+    @model_validator(mode="after")
+    def check_pricing(self):
+        if self.api_pricing is not None:
+            required_keys = {"input_pricing", "output_pricing"}
+            missing_keys = required_keys - self.api_pricing.keys()
+
+            if missing_keys:
+                raise ValueError(f"Missing required pricing keys: {missing_keys}")
+        return self
 
     def _calculate_cost(self, distilabel_output: Dict, encoding: Encoding) -> Dict:
         """Calculate the total API cost for inputs and outputs based on pricing configuration."""
-        pricing = api_pricing_config.get_model_by_name(self.api_model_name)
+        api_pricing = self.api_pricing or api_pricing_config.get_model_by_name(
+            self.api_model_name
+        )
 
         input_cost = self._calculate_token_cost(
-            distilabel_output, "raw_input", pricing["input"], encoding
+            distilabel_output, "raw_input", api_pricing["input_pricing"], encoding
         )
         output_cost = self._calculate_token_cost(
-            distilabel_output, "raw_output", pricing["output"], encoding
+            distilabel_output, "raw_output", api_pricing["output_pricing"], encoding
         )
 
         total_cost = input_cost + output_cost
