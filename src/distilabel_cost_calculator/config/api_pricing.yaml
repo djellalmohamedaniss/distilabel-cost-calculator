@@ -1,4 +1,4 @@
 models:
   - name: "gpt-4o-mini"
-    input: 0.15
-    output: 0.6
+    input_pricing: 0.15
+    output_pricing: 0.6
